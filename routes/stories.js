@@ -42,28 +42,54 @@ router.get('/', ensureAuth, async (req, res) => {
   }
 })
 
+// @desc    Show single story
+// @route   GET /stories/:id
+router.get('/:id', ensureAuth, async (req, res) => {
+  try {
+    let story = await Story.findById(req.params.id).populate('user').lean()
+
+    if (!story) {
+      return res.render('error/404')
+    }
+
+    if (story.user._id != req.user.id && story.status == 'private') {
+      res.render('error/404')
+    } else {
+      res.render('stories/show', {
+        story,
+      })
+    }
+  } catch (err) {
+    console.error(err)
+    res.render('error/404')
+  }
+})
 
 // @desc    Show edit page
 // @route   GET /stories/edit/:id
 router.get('/edit/:id', ensureAuth, async (req, res) => {
-  const story = await Story.findOne({
-    _id: req.params.id
-  }).lean()
+  try {
+    const story = await Story.findOne({
+      _id: req.params.id,
+    }).lean()
 
-  if (!story) {
-    return res.render('error/404')
+    if (!story) {
+      return res.render('error/404')
+    }
+
+    if (story.user != req.user.id) {
+      res.redirect('/stories')
+    } else {
+      res.render('stories/edit', {
+        story,
+      })
+    }
+  } catch (err) {
+    console.error(err)
+    return res.render('error/500')
   }
-
-  // check if story owner is logged in user
-  if (story.user != req.user.id) {
-    res.redirect('/stories')
-  } else {
-    res.render('stories/edit', {
-      story
-    })
-  }
-
 })
+
 
 // @desc    Update story
 // @route   PUT /stories/:id
