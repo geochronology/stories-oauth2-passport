@@ -20,7 +20,7 @@ connectDB()
 const app = express()
 
 // Body parser
-app.use(express.urlencoded({ extended: false }))
+app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
 // Logging
